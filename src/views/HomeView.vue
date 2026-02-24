@@ -26,6 +26,9 @@ const goToHistory = () => {
 }
 
 const openCustomInput = () => {
+  customNumbers.value = [1, 1, 1, 1]
+  customSolutions.value = []
+  showCustomAnswer.value = false
   showCustomInput.value = true
 }
 
@@ -377,7 +380,12 @@ const startGameWithCustom = () => {
 }
 
 .num-input {
-  width: 80px;
+  width: 100px;
+}
+
+.num-input :deep(.el-input__wrapper) {
+  font-size: 24px;
+  padding: 8px 16px;
 }
 
 .dialog-actions {

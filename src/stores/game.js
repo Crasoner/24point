@@ -53,47 +53,79 @@ const getAllSolutions = (nums, originalNums) => {
     if (Number.isInteger(n)) return n.toString()
     return n.toFixed(2).replace(/\.?0+$/, '')
   }
-  
-  const solve = (currentNums, expression) => {
-    if (currentNums.length === 1) {
-      if (Math.abs(currentNums[0] - target) < 0.0001) {
-        solutions.add(expression)
+
+  const solve = (currentItems) => {
+    if (currentItems.length === 1) {
+      if (Math.abs(currentItems[0].value - target) < 0.0001 && currentItems[0].usedNums.length === originalNums.length) {
+        solutions.add(currentItems[0].expression)
       }
       return
     }
     
-    for (let i = 0; i < currentNums.length; i++) {
-      for (let j = i + 1; j < currentNums.length; j++) {
-        const a = currentNums[i]
-        const b = currentNums[j]
-        const remaining = currentNums.filter((_, idx) => idx !== i && idx !== j)
+    for (let i = 0; i < currentItems.length; i++) {
+      for (let j = i + 1; j < currentItems.length; j++) {
+        const a = currentItems[i]
+        const b = currentItems[j]
+        const remaining = currentItems.filter((_, idx) => idx !== i && idx !== j)
         
         for (const op of operators) {
           let results = []
           
           if (op === '+') {
-            results = [{ val: a + b, expr: `(${formatNum(a)} + ${formatNum(b)})` }]
+            results.push({
+              value: a.value + b.value,
+              expression: `(${a.expression} + ${b.expression})`,
+              usedNums: [...a.usedNums, ...b.usedNums]
+            })
           } else if (op === '-') {
-            results = [
-              { val: a - b, expr: `(${formatNum(a)} - ${formatNum(b)})` },
-              { val: b - a, expr: `(${formatNum(b)} - ${formatNum(a)})` }
-            ]
+            results.push({
+              value: a.value - b.value,
+              expression: `(${a.expression} - ${b.expression})`,
+              usedNums: [...a.usedNums, ...b.usedNums]
+            })
+            results.push({
+              value: b.value - a.value,
+              expression: `(${b.expression} - ${a.expression})`,
+              usedNums: [...a.usedNums, ...b.usedNums]
+            })
           } else if (op === '*') {
-            results = [{ val: a * b, expr: `(${formatNum(a)} × ${formatNum(b)})` }]
+            results.push({
+              value: a.value * b.value,
+              expression: `(${a.expression} × ${b.expression})`,
+              usedNums: [...a.usedNums, ...b.usedNums]
+            })
           } else if (op === '/') {
-            if (b !== 0) results.push({ val: a / b, expr: `(${formatNum(a)} ÷ ${formatNum(b)})` })
-            if (a !== 0) results.push({ val: b / a, expr: `(${formatNum(b)} ÷ ${formatNum(a)})` })
+            if (b.value !== 0) {
+              results.push({
+                value: a.value / b.value,
+                expression: `(${a.expression} ÷ ${b.expression})`,
+                usedNums: [...a.usedNums, ...b.usedNums]
+              })
+            }
+            if (a.value !== 0) {
+              results.push({
+                value: b.value / a.value,
+                expression: `(${b.expression} ÷ ${a.expression})`,
+                usedNums: [...a.usedNums, ...b.usedNums]
+              })
+            }
           }
           
           for (const result of results) {
-            solve([...remaining, result.val], result.expr)
+            solve([...remaining, result])
           }
         }
       }
     }
   }
+
+  const initialItems = originalNums.map((n, idx) => ({
+    value: n,
+    expression: formatNum(n),
+    usedNums: [idx]
+  }))
   
-  solve(nums, '')
+  solve(initialItems)
   return Array.from(solutions)
 }
 
